@@ -25,6 +25,8 @@ io.on('connection', (socket) => {
     if(!isRealString(params.name) || !isRealString(params.room)){
       return callback('Name and room name are required.');
     }
+
+    console.log("socket.id",socket.id);
     socket.join(params.room);
     users.removeUser(socket.id);
     users.addUser(socket.id,params.name,params.room);
@@ -54,6 +56,11 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User was disconnected');
+    var user = users.removeUser(socket.id);
+    if(user){
+      io.to(user.room).emit('updateUserList',users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left.`));
+    }
   });
 });
 
